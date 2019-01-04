@@ -1,0 +1,16 @@
+<apex:page standardController="nDESIGN__View__c" extensions="creditMemoEditLink" html-height="30px" showHeader="false">
+    <apex:pageBlock >
+        <apex:form >
+            <apex:inputhidden value="{!nDESIGN__View__c.Id}" />
+            <apex:commandButton value="Create Edit Links" action="{!createLinks}" / >
+                <apex:commandButton value="Reduce Knockout / Auto Generate Field Labels" action="{!reduceAndGenerateLabels}" / >
+                    <apex:outputPanel id="redirectPanel" >
+                        <apex:outputText rendered="{!shouldRedirect}">
+                            <script type="text/javascript">
+                            window.top.location.href = '{!redirectUrl}';
+                            </script>
+                        </apex:outputText>
+                    </apex:outputPanel>
+                </apex:form>
+	</apex:pageBlock>
+</apex:page>

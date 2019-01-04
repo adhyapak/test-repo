@@ -1,0 +1,107 @@
+<!-- The page is tied to the Get Payment Schedule action in the Magic Wand on the Loan page -->
+<!-- Chintan Adhyapak, West Monroe Partners, 12/06/2018 -->
+<apex:page standardController="LLC_BI__Loan__c" extensions="GetPaymentScheduleController">
+	<script type="text/javascript">
+		var cbIterationPeriodInSeconds = 3;
+		Visualforce.remoting.timeout = 300000; //Set timeout at page level
+
+		//This function sends out the get loan number request to the middleware by calling the getLoanNumber function of the controller
+		function getPaymentSchedule() {
+			document.getElementById("RequestPaymentSchedule").disabled = true;
+			document.getElementById("RequestPaymentSchedule").setAttribute("disabled", "disabled");
+
+			document.getElementById('RequestPaymentScheduleResponse').innerHTML = 'Requesting Payment Schedule from the Core. Please Wait...'; 
+			//This remoting call will use the page's timeout value
+			Visualforce.remoting.Manager.invokeAction (
+				'{!$RemoteAction.GetPaymentScheduleController.getPaymentSchedule}',
+				'{!$CurrentPage.parameters.id}',
+				handleResult
+			);
+		}
+		
+		
+		//The callback function that handles the response from the getPaymentSchedule call
+		function handleResult(result, event) {
+			if (result.IsSuccessful == true) {
+				poll(result.TransactionLogExternalId);
+			} else {
+				if (result.Messages != null && result.Messages != '' && result.Messages.length > 0 && result.Messages.indexOf('timed out') > 0) {
+					document.getElementById('mainPanel').style.display="none";
+					document.getElementById('timeout').style.display="block";
+				} else if (result.Messages != null && result.Messages != '' && result.Messages.length > 0) {
+					document.getElementById('RequestPaymentScheduleResponse').innerHTML = 'Payment Schedule Requested with Errors' + '{!$Label.UXDelimiter}' + result.Messages;
+				} else {
+					document.getElementById('RequestPaymentScheduleResponse').innerHTML = 'Payment Schedule Requested with Errors' + '{!$Label.UXDelimiter}' + '{!$Label.UnhandledException}';
+				}
+			}
+		}
+		
+		
+		//The poll function called by the handleResult function to poll for an update to the transaction log
+		function poll(externalId) {
+			setTimeout(function() {
+				getState(externalId);
+			}, cbIterationPeriodInSeconds * 1000);
+		}
+		
+		
+		//This function is called by the poll function to make a remoting call to retrieve the transaction log
+		function getState(externalId) {
+			//This remoting call will use the page's timeout value
+			Visualforce.remoting.Manager.invokeAction (
+				'{!$RemoteAction.GetPaymentScheduleController.getTransactionStatus}',
+				externalId,
+				handlePollingResult
+			);
+		}
+		
+		
+		//The callback function for the remoting call in getState
+		function handlePollingResult(result, event) {
+			if(result.IsComplete == true) {
+				if(result.Details != null && result.Details != '' && result.Details.length > 0) {
+					document.getElementById('RequestPaymentScheduleResponse').innerHTML = (result.IsSuccessful == true ? 'Payment Schedule Requested Successfully.' : 'Loan Number Requested with Errors.') + '<br/>Response: ' + result.Details;
+				} else {
+					document.getElementById('RequestPaymentScheduleResponse').innerHTML = (result.IsSuccessful == true ? 'Payment Schedule Requested Successfully' : 'Loan Number Requested with Errors.') + '{!$Label.UXDelimiter}' + 'Request Completed.';    
+				}
+			} else {
+				//Update the status on the page by adding another dot at the end to simulate motion
+				document.getElementById('RequestPaymentScheduleResponse').innerHTML = document.getElementById('RequestPaymentScheduleResponse').innerHTML + '...';
+				poll(result.ExternalId);
+			}
+		}
+	</script>
+
+<!--
+	<apex:composition template="nFORCE__Template_View_Container">
+		<apex:define name="content">
+-->
+		<apex:outputPanel >
+			<apex:outputPanel id="resultPanel" rendered="{!loan.Is_Ready_To_Call_Payment_Calculator__c}">
+				<div id="mainPanel">
+					<apex:outputText value="Please click on the button below to request a loan payment schedule"/>
+					<br/>
+					<button id="RequestPaymentSchedule" onclick="getPaymentSchedule()">Request Payment Schedule</button>
+					<br/><br/>
+					<div style="color:red;">{!debugMessage}</div>
+					<br/>
+					<div id="RequestPaymentScheduleResponse"/>
+				</div>
+			</apex:outputPanel>
+			<apex:outputPanel id="notReady" rendered="{!!loan.Is_Ready_To_Call_Payment_Calculator__c}">
+				<!--  This div displays a label telling the user that the loan does not qualify to request a payment schedule  -->
+				<div>
+					<apex:pageMessage severity="error" strength="3" title="This Loan does not qualify to request a payment schedule"/>
+				</div>
+			</apex:outputPanel>
+			<apex:outputPanel >
+				<div id="timeout" style="display: none">
+					<apex:pageMessage severity="info" strength="3" title="Your request timed out. Please submit your request for payment schedule to the core again."/>
+				</div>
+			</apex:outputPanel>
+		</apex:outputPanel>
+<!--
+		</apex:define>
+	</apex:composition>
+-->
+</apex:page>

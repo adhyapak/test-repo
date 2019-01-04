@@ -1,0 +1,62 @@
+<apex:page standardController="LLC_BI__Deposit__c" extensions="CBDepositController">
+<!--the value of the standardController attribute should be the object you want the page to be available for-->
+
+<script type="text/javascript">
+    var cbIterationPeriodInSeconds = 3;
+    Visualforce.remoting.timeout = 120000; // Set timeout at page level
+    function bookDeposit() {
+        document.getElementById("DepositCoreBooking").disabled = true;
+        document.getElementById("DepositCoreBooking").setAttribute("disabled", "disabled");
+        // This remoting call will use the page's timeout value
+        Visualforce.remoting.Manager.invokeAction(
+            '{!$RemoteAction.CBDepositController.bookDeposit}',
+            '{!$CurrentPage.parameters.id}',
+            handleBookingResult
+        );
+        
+        document.getElementById('DepositCoreBookingResponse').innerHTML = 'Started'; 
+    }
+    function getState(externalId) {
+        // This remoting call will use the page's timeout value
+        Visualforce.remoting.Manager.invokeAction(
+            '{!$RemoteAction.CBDepositController.getTransactionStatus}',
+            externalId,
+            handlePollingResult
+        );
+    }
+    function handleBookingResult(result, event) {
+        if(result.IsSuccessful == true){
+            poll(result.TransactionLogExternalId);
+        }else{
+            if(result.Messages != null && result.Messages != '' && result.Messages.length > 0){
+                document.getElementById('DepositCoreBookingResponse').innerHTML = '{!$Label.UXError}' + '{!$Label.UXDelimiter}' + result.Messages;    
+            }else{
+                document.getElementById('DepositCoreBookingResponse').innerHTML = '{!$Label.UXError}' + '{!$Label.UXDelimiter}' + '{!$Label.UnhandledException}';    
+            }
+        }
+    }
+    function handlePollingResult(result, event) {
+        if(result.IsComplete == true){
+            if(result.Details != null && result.Details != '' && result.Details.length > 0){
+                document.getElementById('DepositCoreBookingResponse').innerHTML = (result.IsSuccessful == true ? '{!$Label.UXSuccess}' : '{!$Label.UXError}') + '{!$Label.UXDelimiter}' + result.Details;    
+            }else{
+                document.getElementById('DepositCoreBookingResponse').innerHTML = (result.IsSuccessful == true ? '{!$Label.UXSuccess}' : '{!$Label.UXError}') + '{!$Label.UXDelimiter}' + '{!$Label.BookingCompleted}';    
+            }
+        }else{
+            poll(result.ExternalId);
+        }
+    }
+    function poll(externalId) {
+        setTimeout(function(){
+            getState(externalId);
+        }, cbIterationPeriodInSeconds * 1000);
+    }
+</script>
+<div style="display:{!if(ISBLANK(LLC_BI__Deposit__c.LLC_BI__lookupKey__c),"block","none")};">
+    <button id="DepositCoreBooking" onclick="bookDeposit()">{!$Label.DepositBookingButton}</button>
+    <div id="DepositCoreBookingResponse"></div>
+</div>
+<div style="display:{!if(ISBLANK(LLC_BI__Deposit__c.LLC_BI__lookupKey__c),"none","block")};">
+    <p>{!$Label.BookingCompleted}</p>
+</div>
+</apex:page>

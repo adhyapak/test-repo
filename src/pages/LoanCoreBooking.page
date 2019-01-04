@@ -1,0 +1,99 @@
+<apex:page standardController="LLC_BI__Loan__c" extensions="CBLoanController">
+<!-- The page tied to the Book Loan action in the Magic Wand on the Loan page -->
+<!--  Modified by Chintan Adhyapak, West Monroe Partners, 3/22/2018 -->
+	<script type="text/javascript">
+    	var cbIterationPeriodInSeconds = 3;
+    	Visualforce.remoting.timeout = 300000; // Set timeout at page level
+    	
+    	//This function sends out the book loan request to the middleware by calling the bookLoan function of the controller
+    	function bookLoan() {
+        	document.getElementById("LoanCoreBooking").disabled = true;
+        	document.getElementById("LoanCoreBooking").setAttribute("disabled", "disabled");
+        	//This remoting call will use the page's timeout value
+        	Visualforce.remoting.Manager.invokeAction (
+            	'{!$RemoteAction.CBLoanController.bookLoan}',
+            	'{!$CurrentPage.parameters.id}',
+            	handleBookingResult
+        	);
+        	//Update the status on the page
+        	document.getElementById('LoanCoreBookingResponse').innerHTML = 'Sending Loan to Core. Please Wait...'; 
+    	}
+    	
+    	
+    	//The callback function that handles the response from the bookLoan call
+    	function handleBookingResult(result, event) {
+        	if (result.IsSuccessful == true) {
+            	poll(result.TransactionLogExternalId);
+        	} else {
+            	if (result.Messages != null && result.Messages != '' && result.Messages.length > 0) {
+                	document.getElementById('LoanCoreBookingResponse').innerHTML = '{!$Label.UXError}' + '{!$Label.UXDelimiter}' + result.Messages;    
+            	} else {
+                	document.getElementById('LoanCoreBookingResponse').innerHTML = '{!$Label.UXError}' + '{!$Label.UXDelimiter}' + '{!$Label.UnhandledException}';    
+            	}
+        	}
+    	}
+    	
+    	
+    	//The poll function called by the handleBookingResult function to poll for an update to the transaction log
+    	function poll(externalId) {
+        	setTimeout(function() {
+            	getState(externalId);
+        	}, cbIterationPeriodInSeconds * 1000);
+    	}
+    	
+    	
+    	//This function is called by the poll function to make a remoting call to retrieve the transaction log
+    	function getState(externalId) {
+        	//This remoting call will use the page's timeout value
+        	Visualforce.remoting.Manager.invokeAction (
+            	'{!$RemoteAction.CBLoanController.getTransactionStatus}',
+            	externalId,
+            	handlePollingResult
+        	);
+    	}
+    
+    	
+    	//The callback function for the remoting call in getState
+    	function handlePollingResult(result, event) {
+        	if(result.IsComplete == true) {
+            	if(result.Details != null && result.Details != '' && result.Details.length > 0) {
+                	document.getElementById('LoanCoreBookingResponse').innerHTML = (result.IsSuccessful == true ? 'Loan Sent Successfully to Core.' : '{!$Label.UXError}.') + '<br/>Response: ' + result.Details;    
+            	} else {
+                	document.getElementById('LoanCoreBookingResponse').innerHTML = (result.IsSuccessful == true ? '{!$Label.UXSuccess}' : '{!$Label.UXError}') + '{!$Label.UXDelimiter}' + '{!$Label.BookingCompleted}';    
+            	}
+        	} else {
+        		//Update the status on the page by adding another dot at the end to simulate motion
+        		document.getElementById('LoanCoreBookingResponse').innerHTML = document.getElementById('LoanCoreBookingResponse').innerHTML + '.';
+            	poll(result.ExternalId);
+        	}
+    	}
+	</script>
+	
+	<apex:composition template="nFORCE__Template_View_Container">
+		<apex:define name="content">
+			<apex:outputPanel id="ALSdown" rendered="{!isALSdown && loan.Loan_Ready_for_Auto_Booking__c}">
+        		<!--  This div displays the Book Loan button if appropriate -->
+        		<div>
+        			<apex:pageMessage severity="error" strength="3" title="Funding of ALS Loans cannot occur between {!startTime} - {!endTime} Eastern. Please submit this loan again outside this window"/>
+        		</div>
+        	</apex:outputPanel>
+        	<apex:outputPanel id="NotALSdown" rendered="{!!isALSdown && loan.Loan_Ready_for_Auto_Booking__c}">
+				<div>
+    				<apex:outputText value="Please click on the button below to send this loan to the Core for booking"/>
+    				<br/>
+    				<button id="LoanCoreBooking" onclick="bookLoan()">{!$Label.LoanBookingButton}</button>
+    				<br/><br/>
+    				<div style="color:red;">{!debugMessage}</div>
+    				<br/>
+					<div id="LoanCoreBookingResponse"></div>
+				</div>
+			</apex:outputPanel>
+			<apex:outputPanel id="NotReady" rendered="{!!loan.Loan_Ready_for_Auto_Booking__c}">
+				<!--  This div displays a label telling the user that the loan has already been booked once  -->
+				<div style="display:{!if(loan.Loan_Ready_for_Auto_Booking__c,"none","block")};">
+	    			<apex:pageMessage severity="error" strength="3" title="This Loan does not qualify to be sent for booking"/>
+				</div>
+			</apex:outputPanel>
+		</apex:define>
+	</apex:composition>
+</apex:page>

@@ -1,0 +1,7 @@
+<apex:page standardController="Account">
+<!--the value of the standardController attribute should be the object you want the page to be available for-->
+<script>
+var docmanOverrideLocation = 'account';
+</script>
+<apex:include pageName="DocmanExperianOverride"/>
+</apex:page>

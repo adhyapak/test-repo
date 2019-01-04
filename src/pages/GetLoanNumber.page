@@ -1,0 +1,99 @@
+<!-- The page is tied to the Get Loan Number action in the Magic Wand on the Loan page -->
+<!-- Chintan Adhyapak, West Monroe Partners, 11/19/2018 -->
+<apex:page standardController="LLC_BI__Loan__c" extensions="GetLoanNumberController">
+	<script type="text/javascript">
+		var cbIterationPeriodInSeconds = 3;
+		Visualforce.remoting.timeout = 300000; //Set timeout at page level
+
+		//This function sends out the get loan number request to the middleware by calling the getLoanNumber function of the controller
+		function getLoanNumber() {
+			document.getElementById("RequestLoanNumber").disabled = true;
+			document.getElementById("RequestLoanNumber").setAttribute("disabled", "disabled");
+
+			document.getElementById('RequestLoanNumberResponse').innerHTML = 'Requesting a Loan Number from the Core. Please Wait...'; 
+			//This remoting call will use the page's timeout value
+			Visualforce.remoting.Manager.invokeAction (
+				'{!$RemoteAction.GetLoanNumberController.getLoanNumber}',
+				'{!$CurrentPage.parameters.id}',
+				handleBookingResult
+			);
+		}
+		
+		
+		//The callback function that handles the response from the getLoanNumber call
+		function handleBookingResult(result, event) {
+			if (result.IsSuccessful == true) {
+				poll(result.TransactionLogExternalId);
+			} else {
+				if (result.Messages != null && result.Messages != '' && result.Messages.length > 0) {
+					document.getElementById('RequestLoanNumberResponse').innerHTML = 'Loan Number Requested with Errors.' + '{!$Label.UXDelimiter}' + result.Messages;    
+				} else {
+					document.getElementById('RequestLoanNumberResponse').innerHTML = 'Loan Number Requested with Errors.' + '{!$Label.UXDelimiter}' + '{!$Label.UnhandledException}';    
+				}
+			}
+		}
+		
+		
+		//The poll function called by the handleBookingResult function to poll for an update to the transaction log
+		function poll(externalId) {
+			setTimeout(function() {
+				getState(externalId);
+			}, cbIterationPeriodInSeconds * 1000);
+		}
+		
+		
+		//This function is called by the poll function to make a remoting call to retrieve the transaction log
+		function getState(externalId) {
+			//This remoting call will use the page's timeout value
+			Visualforce.remoting.Manager.invokeAction (
+				'{!$RemoteAction.GetLoanNumberController.getTransactionStatus}',
+				externalId,
+				handlePollingResult
+			);
+		}
+		
+		
+		//The callback function for the remoting call in getState
+		function handlePollingResult(result, event) {
+			if(result.IsComplete == true) {
+				if(result.Details != null && result.Details != '' && result.Details.length > 0) {
+					document.getElementById('RequestLoanNumberResponse').innerHTML = (result.IsSuccessful == true ? 'Loan Number Requested Successfully.' : 'Loan Number Requested with Errors.') + '<br/>Response: ' + result.Details;
+				} else {
+					document.getElementById('RequestLoanNumberResponse').innerHTML = (result.IsSuccessful == true ? 'Loan Number Requested Successfully' : 'Loan Number Requested with Errors.') + '{!$Label.UXDelimiter}' + 'Request Completed.';    
+				}
+			} else {
+				//Update the status on the page by adding another dot at the end to simulate motion
+				document.getElementById('RequestLoanNumberResponse').innerHTML = document.getElementById('RequestLoanNumberResponse').innerHTML + '.';
+				poll(result.ExternalId);
+			}
+		}
+	</script>
+
+<!--
+	<apex:composition template="nFORCE__Template_View_Container">
+		<apex:define name="content">
+-->
+            <apex:form >
+<apex:outputPanel id="resultPanel" rendered="{!loan.Is_Ready_To_Request_Loan_Number__c}">
+				<div>
+					<apex:outputText value="Please click on the button below to request a loan number"/>
+					<br/>
+					<button id="RequestLoanNumber" onclick="getLoanNumber()">Request Loan Number</button>
+					<br/><br/>
+					<div style="color:red;">{!debugMessage}</div>
+					<br/>
+					<div id="RequestLoanNumberResponse"></div>
+				</div>
+			</apex:outputPanel>
+			<apex:outputPanel id="NotReady" rendered="{!!loan.Is_Ready_To_Request_Loan_Number__c}">
+				<!--  This div displays a label telling the user that the loan does not qualify to request a loan number  -->
+				<div style="display:{!if(loan.Is_Ready_To_Request_Loan_Number__c,"none","block")};">
+                    <apex:pageMessage severity="error" strength="3" title="This Loan does not qualify to request a loan number"/>
+				</div>
+            </apex:outputPanel>
+            </apex:form>
+<!--
+		</apex:define>
+    </apex:composition>
+-->
+</apex:page>

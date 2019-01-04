@@ -1,0 +1,12 @@
+<apex:page sideBar="false" standardController="Account">
+    <c:BLUPIncludes />
+    <c:BLUPConfig />
+    <c:BLUPSubscriber channel="TransactionLogChanges" />
+
+    <div id="pushNotificationUpdates" ng-app="businessLookup" ng-controller="businessLookupController as vm"  class="slds force">
+
+            <message></message>
+            <c:BLUPPartials />
+            <list-view-component />
+    </div>
+</apex:page>

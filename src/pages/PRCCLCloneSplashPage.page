@@ -1,0 +1,41 @@
+<apex:page id="page">
+
+<nDESIGN:Includes enableBootstrap3="true" enableBS3Namespace="true" enableFontAwesome="true" />
+<div class="force">
+<apex:form id="theform">
+
+<div class="page-header">
+    <h2>Product CCL Cloner Menu</h2>
+</div>
+
+<!--
+<apex:sectionHeader title="nCino Lifecycle" subtitle="Product CCL Cloner"/>
+
+<p><apex:outputLink value="{! $Page.ProductPRCCLClonePage}">Product Context</apex:outputLink></p>
+<p><apex:outputLink value="{! $Page.ChecklistPRCCLClonePage}">Closing Checklist Context</apex:outputLink></p>
+-->
+
+<!--
+<div class="btn-group btn-group-justified" role="group" aria-label="...">
+  <div class="btn-group" role="group">
+    <a href="{!$Page.ProductPRCCLClonePage}" class="btn btn-info" role="button">Product Context:  Select this option to manipulate ProductCCLs on Product records.</a>
+  </div>
+  <div class="btn-group" role="group">
+    <a href="{!$Page.ChecklistPRCCLClonePage}" class="btn btn-info" role="button">Closing Checklist Context:  Select this option to manipulate ProductCCLs on Closing Checklist records.</a>
+  </div>
+</div>
+-->
+
+<div>
+    <a href="{!$Page.ProductPRCCLClonePage}" class="btn btn-info" role="button">Product Context:  Select this option to manipulate ProductCCLs on Product records.</a>
+</div>
+
+<p></p>
+
+<div>
+    <a href="{!$Page.ChecklistPRCCLClonePage}" class="btn btn-info" role="button">Closing Checklist Context:  Select this option to manipulate ProductCCLs on Closing Checklist records.</a>
+</div>
+
+</apex:form>
+</div>
+</apex:page>

@@ -1,0 +1,8 @@
+<apex:page standardController="LLC_BI__Annual_Review__c" extensions="riskGradeTranslation">
+    <apex:form >
+        
+        <apex:outputText value="Risk Grade Calculation: {!grade}" id="gradeTrack"  style="font-size: 20px;" />
+        <apex:actionPoller action="{!refreshGrade}" reRender="gradeTrack" interval="5"/>        
+        
+    </apex:form>
+</apex:page>

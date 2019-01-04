@@ -1,0 +1,146 @@
+<apex:page showHeader="false" sidebar="false" controller="NDOC.UniversalDocManController">
+<script async="async" type="text/javascript">
+    window.jQuery || document.write('<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"><\/script>');
+</script>
+<NDOC:UniversalDocManDataService />
+<NDOC:UniversalDocManIncludes />
+<!-- Include your angular module and service files here -->
+<script async="async" type="text/javascript">
+(function(){
+    'use strict';
+    angular.module('custom.docman.plugins', []);
+})();
+(function(){
+    'use strict';
+    
+    angular.module('custom.docman.plugins').service('downloadService', downloadService);
+    
+    //$q is angular's promise service
+    downloadService.$inject = ['$window','commonService','dataService','$q'];
+    
+    function downloadService($window, commonService, dataService, $q){
+        
+        var placeholderKey = null,
+            placeholderStorageType = null,
+            selectedPlaceholder = null,
+            alreadyOpenedOneWindow = false;
+        
+        return {
+            before: before, 
+            after: after, 
+            execute: execute
+        };
+        
+        /**
+        * @return true if execute should be called, false if standard download
+        should be called
+        * @param placeholderId: Id of the placeholder that holds the document to
+        be downloaded
+        * @param isExternallyStored: Boolean if the file is stored externally
+        (not in Salesforce) LLC_BI__Document_Store__c.LLC_BI__Is_External__c
+        * @param storageType: String type of storage based on the
+        LLC_BI__Document_Store__c.LLC_BI__Type__c
+         */
+        function before(placeholderId, isExternallyStored, storageType){
+            //console.log(FILE);
+            //console.log('placeholderId:'+placeholderId+', isExternallyStored:'+isExternallyStored+', storageType:'+storageType);
+            if(storageType && (storageType === 'SBCS' || storageType === 'PPRPro') && isExternallyStored === true){
+                placeholderKey = placeholderId;
+                placeholderStorageType = storageType;
+                return true; //call the execute function
+            }
+            return false; //do normal things
+        }
+        
+        /**
+        * @param result: the param returned from the execute function
+        */
+        function after(result){
+            //execute logic here that should happen after the execute function
+            
+            //do nothing
+            return true;
+            
+        }
+        
+        /**
+        * @return angular promise
+        */
+        function execute(){
+            
+            var deferred = $q.defer();
+            
+            if(alreadyOpenedOneWindow===true)
+            {
+                deferred.reject(false);
+                return deferred.promise;
+            }
+            
+            alreadyOpenedOneWindow = true;
+            
+            //console.log('running execute method');
+            
+            //run your custom logic for download here
+            if(executeThirdPartyDownload() === true){
+                deferred.resolve(true);    
+            }else{
+                deferred.reject(false);
+            }
+            
+            //result is a parameter that will be passed into the .then function when
+            //the promise is resolved or rejected.
+            //result will be passed into the after() function
+            //Contrarily, the deferred can be rejected and the after() function will
+            //be executed with the result as a parameter to be handled.
+            //deferred.reject(result);
+            return deferred.promise;
+        }
+        
+        function executeThirdPartyDownload(){
+           dataService.retrievePlaceholderWithFields(
+                placeholderKey, 
+                 function(result){ 
+                     //console.log('placeholderStorageType='+placeholderStorageType); 
+                     //console.log('placeholderKey='+placeholderKey);
+                     //console.log('result.LLC_BI__Document_Store_Index__c='+result.LLC_BI__Document_Store_Index__c);
+                     //console.log('result.LLC_BI__docManager__c='+result.LLC_BI__docManager__c);
+                    
+                     //hack stuff to get the native SF custom apex host url
+                     var l = document.createElement("a");
+                     l.href = '{!$CurrentPage.URL}';
+                     var host = 'https://'+l.hostname.replace('llc-bi','c');
+                    
+                     var baseUrl = host+'/apex/ExperianXmlToPdf?';
+                     var baseUrlWithProperties = baseUrl + 'reportType='+placeholderStorageType+'&placeholderKey='+placeholderKey;
+                     //override the resource by manipulating this querystring property value
+                     var baseUrlWithResourceOverride = baseUrlWithProperties + '&resourceOverride=EXPRN_EXPSTYLENEW_RelativeLinks';
+                     //get a value from the global parameter so we know where we are located
+                     if(typeof docmanOverrideLocation !== 'undefined'){
+                         baseUrlWithResourceOverride += '&location=' + docmanOverrideLocation
+                     }
+                     //console.log('will open new browser window to url: '+baseUrlWithResourceOverride);
+                     
+                     $window.open(baseUrlWithResourceOverride);
+                     alreadyOpenedOneWindow = false;
+            
+                 }, 
+                 function(){ 
+                     //console.log('failed'); 
+                 });
+            
+            //console.log(ph);
+            return true;
+        }
+        
+    }
+    
+    
+    
+})();
+</script>
+<NDOC:UniversalDocMan />
+<script>
+var app = angular.module('app');
+app.requires.push('custom.docman.plugins');
+</script>
+</apex:page>

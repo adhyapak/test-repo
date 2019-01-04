@@ -1,0 +1,8 @@
+<!--  Error Page to display when member SSO fails. Chintan Adhyapak, West Monroe Partners, October 23, 2018 -->
+<apex:page showheader="false" sidebar="false">
+    <apex:outputPanel id="SSOError">
+		<div>
+			<apex:pageMessage severity="error" strength="3" title="We are unable to sign you into the Navy Federal Business Services portal. Please contact us Monday through Friday, 8 am to 6 pm ET at 877-418-1462 for additional assistance."/>
+        </div>
+    </apex:outputPanel>
+</apex:page>

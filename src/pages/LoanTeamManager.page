@@ -1,0 +1,124 @@
+<apex:page StandardController="LLC_BI__Loan__c" extensions="LoanTeamManagerExtension" > 
+ <apex:stylesheet value="{!URLFOR($Resource.nDESIGN__llc_web_ui, '/bootstrap3/css/bootstrap.min.css')}"/>
+ <nDESIGN:Includes enableBootstrap3="true"/>
+
+<apex:form id="formAddLtm">
+<apex:pageMessages />
+<apex:actionRegion >
+<div class="force">
+        <apex:outputPanel >
+            <i class="glyphicon glyphicon-circle-arrow-left"></i>
+                    <a href="/{!LLC_BI__Loan__c.Name}"> Back To Facility: {!CurrentLoanName}</a>
+                    <br/>
+                    <br/>
+       </apex:outputPanel>
+            <div class="panel panel-primary">
+                <div class="panel-heading">
+                    <div class="panel-title">
+                        <span class="h4"> New Loan Team Member</span>
+                    </div>
+                </div>
+                <div class="panel-body table-responsive">
+                    
+                        <table class="table table-hover">
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <b>Select Team Member Role</b> 
+                                </td>
+                                <td>
+                                <apex:selectList size="1" value="{!newLoanTeamMember.LLC_BI__Assigned_Role__c}" multiselect="false" id="fld1">
+                                <!-- styleClass="form-control"  -->
+                                    <apex:selectOptions value="{!Role}"/>
+                                </apex:selectList>  
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <b>Select Loan Team Member</b> 
+                                </td>
+                                <td> 
+
+                                <!------ QUERY USERS AND DISPLAY INSTEAD OF LOOKUP -->
+                                <!-- <apex:selectList styleClass="form-control" size="1" value="{!newLoanTeamMember.LLC_BI__User__c}" multiselect="false" id="fld2">
+                                    <apex:selectOptions value="{!User}"/>
+                                </apex:selectList>  -->
+                                <apex:inputField value="{!newLoanTeamMember.LLC_BI__User__c}" id="fld2"/>
+                                </td>
+                            </tr>
+                           <!-- ADD DELEGATE TEAM MEBER FUNCIONALITY
+                           <tr>
+                                <td>
+                                    <b>Select Delegate Team Member</b>
+                                </td>
+                                <td> 
+
+                                 <apex:selectList styleClass="form-control" size="1" value="{!newLoanTeamMember.Delegate_Team_Member__c}" multiselect="false" id="fld3">
+                                    <apex:selectOptions value="{!User}"/>
+                                </apex:selectList>  
+                                <apex:inputField value="{!newLoanTeamMember.Delegate_Team_Member__c}" id="fld3"/>
+                                </td>
+                            </tr> -->
+                         
+                        </tbody>
+                        </table>
+                    <div class="panel-footer">
+                        <center><apex:commandButton styleClass="btn btn-small" value="Add" reRender="formAddLtm,panel1,panel2,panel3" action="{!addLoanTeamMember}" status="updateTeamMembers"/>
+                        <apex:actionstatus id="updateTeamMembers" starttext=" Saving..."/>
+                        </center>
+                    </div> 
+                </div>
+            </div>
+
+    <apex:outputPanel id="panel3">
+                           
+    </apex:outputPanel>
+
+    <apex:outputPanel rendered="{!ltmCount <> 0}" id="panel2">
+    <div class="panel panel-success">
+            <div class="panel-heading">
+                <div class="panel-title">
+                    <span class="h4"> Loan Team Members </span>
+                </div>
+            </div>
+        <div class="panel-body table-responsive">
+        <table class="table table-hover">
+            <tr>
+                <th>Role</th> 
+                <th>Loan Team Member</th>
+                <th>Delegate Team Member</th>
+                <th>&nbsp;</th>
+            </tr>
+            <apex:repeat value="{!LoanTeamMembers}" var="a">
+            
+                <tr>
+                   <td width="200">
+                        <apex:outputField value="{!a.loTmWr.LLC_BI__Assigned_Role__c}"/>
+                    </td>   
+                    <td width="200">
+                        <apex:outputField value="{!a.loTmWr.LLC_BI__User__c}" />
+                    </td>
+                    <!-- <td width="200">
+                        <apex:outputField value="{!a.loTmWr.Delegate_Team_Member__c}"/>
+                    </td>    -->
+
+                    <td width="200">
+                        <apex:outputLink value="/{!a.loTmWr.Id}">Edit</apex:outputLink>
+                    </td> 
+                </tr>          
+            </apex:repeat>       
+        </table>      
+            <div styleClass="panel-footer">
+                <center>
+                    <apex:commandButton id="btnCancel" value="Go Back" action="{!cancel}"/>
+                   <!--  <apex:commandButton id="btnUpdateStep" value="Save" action="{!updateTeamMembers}" reRender="formUpdateSteps,formAddStep" status="updateTeamMembers" />
+                    <apex:actionstatus id="updateTeamMembers" starttext="Updating..."/> -->
+                </center>
+            </div>
+        </div>
+    </div>
+    </apex:outputPanel>
+</div>    
+</apex:actionRegion>  
+</apex:form>
+</apex:page>

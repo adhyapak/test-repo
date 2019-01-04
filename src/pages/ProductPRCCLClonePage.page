@@ -1,0 +1,176 @@
+<apex:page id="thepage" controller="ProductPRCCLClone" action="{!autoSetup}">
+    
+    <nDESIGN:Includes enableBootstrap3="true" enableBS3Namespace="true" enableFontAwesome="true" />
+    <div class="force">
+    <apex:form id="theform">
+   
+    <div class="page-header">
+        <p><apex:outputLink value="{!$Page.PRCCLCloneSplashPage}"><h4><small><i>Return to Menu</i></small></h4></apex:outputLink></p>
+        <h2>ProductCCL Cloner and Removal Tool <small>Product Context</small></h2>
+    </div>
+    
+    <div class="row extraspacing">
+            <apex:pageMessages />
+    </div>
+
+    <!-- SPECIFY A SOURCE, AND COPY TO ALL OTHER PRODUCTS -->
+    <div class="panel panel-default">
+    <div class="panel-heading"><h3 class="panel-title"><b>Copy PR-CCL To All Products</b></h3></div>
+    <div class="panel-body">
+        <div class="col-xs-12 bs-section">  
+        <div class="row">
+            <div class="col-xs-12">
+                <div class="form-horizontal">
+                    <div class="form-group spacing">
+                        <label class="col-sm-2 control-label text-right align">Source Product LookupKey:</label>
+                        <div class="col-sm-10">
+                            <apex:inputText value="{!sourcePRGS}" styleClass="form-control"/>  
+                        </div>
+                    </div>                                     
+                    <div class="form-group">
+                        <div class="col-sm-offset-2 col-sm-10">
+                            <apex:commandButton value="Copy PR-CCLs" action="{!cloneToAll}" status="generatestatus1" reRender="theform" styleClass="btn btn-primary generate">
+                                <apex:actionStatus id="generatestatus1">
+                                    <apex:facet name="start">
+                                        <img src="/img/loading.gif"/>
+                                    </apex:facet>
+                                </apex:actionStatus>
+                            </apex:commandButton>
+                        </div>
+                    </div>                   
+                </div>
+            </div>
+        </div>    
+        </div> 
+        <a href="#" class="pull-right" data-toggle="tooltip" data-placement="left" title="Select this option when you have a single Product configured with ProductCCLs, and want to copy them to -ALL- other Products.">Help</a>  
+    </div>
+    </div>
+
+    <!-- SPECIFY A SOURCE, AND COPY TO SPECIFIC DEFINED PRODUCTS -->
+    <div class="panel panel-default">
+    <div class="panel-heading"><h3 class="panel-title"><b>Copy PR-CCL To Targets</b></h3></div>
+    <div class="panel-body">
+        <div class="col-xs-12 bs-section">  
+        <div class="row">
+            <div class="col-xs-12">
+                <div class="form-horizontal">
+                    <div class="form-group spacing">
+                        <label class="col-sm-2 control-label text-right align">Source Product LookupKey:</label>
+                        <div class="col-sm-10">
+                            <apex:inputText value="{!sourcePR2GS}" styleClass="form-control"/>  
+                        </div>
+                    </div>
+                    <div class="form-group spacing">
+                        <label class="col-sm-2 control-label text-right align">Target Product LookupKey:</label>
+                        <div class="col-sm-10">
+                            <apex:inputText value="{!copyTargetPRsGS}" styleClass="form-control"/>  
+                        </div>
+                    </div>                                        
+                    <div class="form-group">
+                        <div class="col-sm-offset-2 col-sm-10">
+                            <apex:commandButton value="Copy PR-CCLs" action="{!cloneToTargets}" status="generatestatus2" reRender="theform" styleClass="btn btn-primary generate">
+                                <apex:actionStatus id="generatestatus2">
+                                    <apex:facet name="start">
+                                        <img src="/img/loading.gif"/>
+                                    </apex:facet>
+                                </apex:actionStatus>
+                            </apex:commandButton>
+                        </div>
+                    </div>                   
+                </div>
+            </div>
+        </div>    
+        </div>
+        <a href="#" class="pull-right" data-toggle="tooltip" data-placement="left" title="Select this option when you have a single Product configured with ProductCCLs, and want to copy the same configuration to specific Products.  Provide comma-separated target lookupKeys.">Help</a>  
+    </div>
+    </div>
+
+    <!-- SPECIFY PRODUCTS TO KEEP PR-CCL, AND REMOVE ALL OTHERS -->
+    <div class="panel panel-default">
+    <div class="panel-heading"><h3 class="panel-title"><b>Remove All PR-CCLs Except Specified</b></h3></div>
+    <div class="panel-body">
+        <div class="col-xs-12 bs-section">  
+        <div class="row">
+            <div class="col-xs-12">
+                <div class="form-horizontal">
+                    <div class="form-group spacing">
+                        <label class="col-sm-2 control-label text-right align">Excluded Products:</label>
+                        <div class="col-sm-10">
+                            <apex:inputText value="{!prToKeepGS}" styleClass="form-control"/>  
+                        </div>
+                    </div>                                     
+                    <div class="form-group">
+                        <div class="col-sm-offset-2 col-sm-10">
+                            <apex:commandButton value="Remove PR-CCLs" action="{!removeAll}" status="generatestatus3" reRender="theform" styleClass="btn btn-primary generate">
+                                <apex:actionStatus id="generatestatus3">
+                                    <apex:facet name="start">
+                                        <img src="/img/loading.gif"/>
+                                    </apex:facet>
+                                </apex:actionStatus>
+                            </apex:commandButton>
+                        </div>
+                    </div>                   
+                </div>
+            </div>
+        </div>    
+        </div> 
+        <a href="#" class="pull-right" data-toggle="tooltip" data-placement="left" title="Use this option when you want to specify Products on which to keep the ProductCCL, while removing -ALL- others.  Specify comma-separated lookupKeys of Products to retain.">Help</a>  
+    </div>
+    </div>
+
+    <!-- REMOVE PR-CCLs FROM SPECIFIED PRODUCTS -->
+    <div class="panel panel-default">
+    <div class="panel-heading"><h3 class="panel-title"><b>Remove Specified PR-CCLs</b></h3></div>
+    <div class="panel-body">
+        <div class="col-xs-12 bs-section">  
+        <div class="row">
+            <div class="col-xs-12">
+                <div class="form-horizontal">
+                    <div class="form-group spacing">
+                        <label class="col-sm-2 control-label text-right align">Target Product LookupKey(s):</label>
+                        <div class="col-sm-10">
+                            <apex:inputText value="{!removeTargetsGS}" styleClass="form-control"/>  
+                        </div>
+                    </div>                                     
+                    <div class="form-group">
+                        <div class="col-sm-offset-2 col-sm-10">
+                            <apex:commandButton value="Remove PR-CCLs" action="{!removeTargets}" status="generatestatus4" reRender="theform" styleClass="btn btn-primary generate">
+                                <apex:actionStatus id="generatestatus4">
+                                    <apex:facet name="start">
+                                        <img src="/img/loading.gif"/>
+                                    </apex:facet>
+                                </apex:actionStatus>
+                            </apex:commandButton>
+                        </div>
+                    </div>                   
+                </div>
+            </div>
+        </div>    
+        </div> 
+        <a href="#" class="pull-right" data-toggle="tooltip" data-placement="left" title="Use this option when you want to remove PR-CCLs from specific Products only.  Provide comma-separated target lookupKeys.">Help</a>  
+    </div>
+    </div>
+
+    <!-- Existing Product Types list -->
+    <div class="panel panel-info">
+    <div class="panel-heading"><h3 class="panel-title"><b>Current Products</b></h3></div>
+    <!-- <div class="panel-heading"><h3 class="panel-title"><span class="glyphicon glyphicon-star" aria-hidden="true"></span>Current Product Types</h3></div> -->
+    <div class="panel-body">
+    
+    <apex:pageBlock id="pgbk5" mode="maindetail">
+            <apex:dataTable value="{!productsGS}" var="d" styleClass="table table-bordered">
+                <apex:column value="{!d.LLC_BI__Product_Type__r.LLC_BI__Product_Line__r.Name}" headerValue="Product Line"/>
+                <apex:column value="{!d.LLC_BI__Product_Type__r.Name}" headerValue="Product Type"/>
+                <apex:column value="{!d.Name}" headerValue="Product Name"/>
+                <apex:column value="{!d.LLC_BI__lookupKey__c}" headerValue="Product lookupKey"/>
+                <apex:column headerValue="Product Link">
+                    <apex:outputLink value="/{!d.ID}" target="_blank">View Product</apex:outputLink>
+                </apex:column>
+            </apex:dataTable>
+    </apex:pageBlock>
+    </div>
+    </div>  
+
+    </apex:form>
+    </div>
+</apex:page>

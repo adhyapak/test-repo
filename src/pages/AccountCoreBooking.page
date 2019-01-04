@@ -1,0 +1,62 @@
+<apex:page standardController="Account" extensions="CBAccountController">
+<!--the value of the standardController attribute should be the object you want the page to be available for-->
+
+<script type="text/javascript">
+    var cbIterationPeriodInSeconds = 3;
+    Visualforce.remoting.timeout = 120000; // Set timeout at page level
+    function bookCustomer() {
+        document.getElementById("CustomerCoreBooking").disabled = true;
+        document.getElementById("CustomerCoreBooking").setAttribute("disabled", "disabled");
+        // This remoting call will use the page's timeout value
+        Visualforce.remoting.Manager.invokeAction(
+            '{!$RemoteAction.CBAccountController.bookCustomer}',
+            '{!$CurrentPage.parameters.id}',
+            handleBookingResult
+        );
+        
+        document.getElementById('CustomerCoreBookingResponse').innerHTML = 'Started';    
+    }
+    function getState(externalId) {
+        // This remoting call will use the page's timeout value
+        Visualforce.remoting.Manager.invokeAction(
+            '{!$RemoteAction.CBAccountController.getTransactionStatus}',
+            externalId,
+            handlePollingResult
+        );
+    }
+    function handleBookingResult(result, event) {
+        if(result.IsSuccessful == true){
+            poll(result.TransactionLogExternalId);
+        }else{
+            if(result.Messages != null && result.Messages != '' && result.Messages.length > 0){
+                document.getElementById('CustomerCoreBookingResponse').innerHTML = '{!$Label.UXError}' + '{!$Label.UXDelimiter}' + result.Messages;    
+            }else{
+                document.getElementById('CustomerCoreBookingResponse').innerHTML = '{!$Label.UXError}' + '{!$Label.UXDelimiter}' + '{!$Label.UnhandledException}';    
+            }
+        }
+    }
+    function handlePollingResult(result, event) {
+        if(result.IsComplete == true){
+            if(result.Details != null && result.Details != '' && result.Details.length > 0){
+                document.getElementById('CustomerCoreBookingResponse').innerHTML = (result.IsSuccessful == true ? '{!$Label.UXSuccess}' : '{!$Label.UXError}') + '{!$Label.UXDelimiter}' + result.Details;    
+            }else{
+                document.getElementById('CustomerCoreBookingResponse').innerHTML = (result.IsSuccessful == true ? '{!$Label.UXSuccess}' : '{!$Label.UXError}') + '{!$Label.UXDelimiter}' + '{!$Label.BookingCompleted}';    
+            }
+        }else{
+            poll(result.ExternalId);
+        }
+    }
+    function poll(externalId) {
+        setTimeout(function(){
+            getState(externalId);
+        }, cbIterationPeriodInSeconds * 1000);
+    }
+</script>
+<div style="display:{!if(ISBLANK(Account.LLC_BI__lookupKey__c),"block","none")};">
+    <button id="CustomerCoreBooking" onclick="bookCustomer()">{!$Label.CustomerBookingButton}</button>
+    <div id="CustomerCoreBookingResponse"></div>
+</div>
+<div style="display:{!if(ISBLANK(Account.LLC_BI__lookupKey__c),"none","block")};">
+    <p>{!$Label.BookingCompleted}</p>
+</div>
+</apex:page>

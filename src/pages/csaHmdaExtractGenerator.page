@@ -1,0 +1,82 @@
+<apex:page showHeader="true" sidebar="false" standardStylesheets="false" docType="html-5.0">
+    <c:csaHmdaExtractGeneratorIncludes />
+
+    <div class="slds force" id="csaHmdaExtractGenerator" ng-controller="HmdaExtractGeneratorController as vm">
+        <div class="slds-page-header" role="banner">
+            <div class="slds-grid">
+                <div class="slds-col slds-has-flexi-truncate">
+                    <div class="slds-media">
+                        <div class="slds-media__figure">
+                            <img src="" class="slds-icon slds-icon--large slds-icon-standard-user"/>
+                        </div>
+                        <div class="slds-media__body">
+                            <p class="slds-text-heading--label">{!$Label.HE_Generator_Title}</p>
+                            <div class="slds-grid">
+                                <h3 class="slds-text-heading--medium slds-m-right--small slds-truncate slds-align-middle">
+                                    {!$Label.HE_Generator_Description}
+                                </h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="slds-col slds-no-flex slds-align-bottom">
+                    <div class="slds-button-group" role="group">
+                        <button ng-if="!vm.isInstalled"
+                                class="btn btn-secondary"
+                                ng-click="vm.runGeneration()"
+                                ng-disabled="vm.generationDisabled">
+                            {!$Label.HE_Generator_Button_Title}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slds-card slds-m-top--large">
+            <div class="slds-card__body slds-m-around--small">
+            <message></message>
+                <div class="row">
+                    <div class="col-md-4 col-xs-12">
+                        <div class="slds-form-element">
+                            <label class="slds-form-element__label required" for="date">
+                                <abbr class="slds-required">*</abbr> {!$Label.HE_Start_Date}
+                            </label>
+                            <div class="slds-form-element__control">
+                                <div class="input-group">
+                                    <input
+                                        ng-model="vm.startDate"
+                                        required="true"
+                                        intlinputdate="true"
+                                        type="text"
+                                        class="input-sm form-control"
+                                        ng-change="vm.checkDisabled()"/>
+                                    <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4 col-xs-12">
+                        <div class="slds-form-element">
+                            <label class="slds-form-element__label" for="date">
+                                <abbr class="slds-required">*</abbr> {!$Label.HE_End_Date}
+                            </label>
+                            <div class="slds-form-element__control">
+                                <div class="input-group">
+                                    <input
+                                        ng-model="vm.endDate"
+                                        required="true"
+                                        intlinputdate="true"
+                                        type="text"
+                                        class="input-sm form-control"
+                                        ng-change="vm.checkDisabled()"/>
+                                    <span class="input-group-addon"><i class="glyphicon glyphicon-calendar"></i></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</apex:page>
